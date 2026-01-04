@@ -77,7 +77,6 @@ def get_rolling_sharpe(wealth_array, window, rf=0.0):
 
 
 
-
 def plot_sharpe_vs_learning_rate(learning_rates, returns, covs, window=252, lambda_reg=25):
 
     T, N = returns.shape
@@ -189,12 +188,7 @@ def plot_sharpe_vs_learning_rate(learning_rates, returns, covs, window=252, lamb
     plt.figure(figsize=(12, 7))
     colors = plt.cm.tab10(np.linspace(0, 1, len(results))) 
 
-    # --- [NOUVEAU] BLOC D'ANALYSE DES LEANING RATES ---
-    print("\n" + "="*80)
-    print(f"{'STRATÉGIE':<60} | {'LR CIBLE':<10} | {'SHARPE':<10}")
-    print("="*80)
-    
-    target_sharpe = 0.95
+
     
     for i, (name, sharpes) in enumerate(results.items()):
         sharpes_arr = np.array(sharpes)
@@ -205,21 +199,7 @@ def plot_sharpe_vs_learning_rate(learning_rates, returns, covs, window=252, lamb
         max_sharpe = np.max(sharpes_arr)
         idx_max = np.argmax(sharpes_arr)
         
-        # Logique de sélection
-        if max_sharpe < target_sharpe:
-            # Cas 1 : On n'atteint pas 0.95 -> On prend le Max
-            selected_lr = lrs_arr[idx_max]
-            selected_sharpe = max_sharpe
-            note = "(Max)"
-        else:
-            # Cas 2 : On dépasse 0.95 -> On cherche le LR le plus proche de 0.95
-            # np.argmin renvoie le premier index (donc le plus petit LR si trié) qui minimise la différence
-            idx_closest = np.argmin(np.abs(sharpes_arr - target_sharpe))
-            selected_lr = lrs_arr[idx_closest]
-            selected_sharpe = sharpes_arr[idx_closest]
-            note = "(~0.95)"
-
-        print(f"{name:<60} | {selected_lr:.4f}     | {selected_sharpe:.4f} {note}")
+    
 
         # --- Plotting standard ---
         plt.plot(learning_rates, sharpes, label=name, linewidth=2, alpha=0.8, color=colors[i])
@@ -231,8 +211,7 @@ def plot_sharpe_vs_learning_rate(learning_rates, returns, covs, window=252, lamb
                      xytext=(0, 10), textcoords='offset points',
                      ha='center', fontsize=9, color=colors[i], fontweight='bold')
 
-    print("="*80 + "\n")
-
+ 
     plt.xlabel('Numerator of the learning rate', fontsize=12)
     plt.ylabel('Annualized Sharpe Ratio', fontsize=12)
     plt.title('Sensitivity Analysis: Sharpe Ratio vs Learning Rate', fontsize=14)
@@ -240,6 +219,7 @@ def plot_sharpe_vs_learning_rate(learning_rates, returns, covs, window=252, lamb
     plt.legend()
     plt.tight_layout()
     plt.show()
+
 
 
 
@@ -358,3 +338,57 @@ def plot_strategy_performance(strategies, dates, window, weight_histories=None, 
             plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize='small', ncol=1)
             plt.tight_layout()
             plt.show()
+
+
+
+
+def evaluate_robustness(strategies_wealth, markowitz_wealth, dates, volatility_proxy=None):
+    
+    metrics = []
+    
+    # 1. Création du DataFrame
+    df_res = pd.DataFrame(strategies_wealth)
+    df_res['Markowitz'] = markowitz_wealth
+    
+    # 2. Rendements
+    df_rets = df_res.pct_change()
+    df_rets = df_rets.dropna()
+    
+    # 3. Assignation des dates
+    if len(dates) == len(df_rets):
+        df_rets.index = dates
+    else:
+        print(f"Warning: Dates length ({len(dates)}) != Returns length ({len(df_rets)}). Index not set.")
+    
+    # Benchmark
+    bench_rets = df_rets['Markowitz']
+    
+    for strategy in df_rets.columns:
+        strat_rets = df_rets[strategy]
+        
+        # --- Calcul des Métriques ---
+        
+        # A. Sharpe Ratio (Annualisé, sans taux sans risque ou Rf=0)
+        daily_mean = strat_rets.mean()
+        daily_std = strat_rets.std()
+        # Sharpe = (Mean * 252) / (Std * sqrt(252)) = Mean/Std * sqrt(252)
+        sharpe = (daily_mean / daily_std) * np.sqrt(252) if daily_std != 0 else 0
+        
+        # B. Max Drawdown
+        cumulative = (1 + strat_rets).cumprod()
+        peak = cumulative.cummax()
+        drawdown = (cumulative - peak) / peak
+        max_dd = drawdown.min()
+        
+        # C. Calmar Ratio
+        annual_return = daily_mean * 252
+        calmar = annual_return / abs(max_dd) if max_dd != 0 else 0
+            
+        metrics.append({
+            'Strategy': strategy,
+            'Sharpe Ratio': f"{sharpe:.2f}",   # <--- Ajouté ici
+            'Max Drawdown': f"{max_dd:.2%}",
+            'Calmar Ratio': f"{calmar:.2f}",
+        })
+        
+    return pd.DataFrame(metrics).set_index('Strategy')
