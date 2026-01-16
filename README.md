@@ -15,7 +15,7 @@ The framework utilizes Optimistic Follow-The-Regularized-Leader (OFTRL) algorith
 
 To recreate the results of the experiments: 
 - The notebook containing the code producing the results is available under the name "notebook.ipynb". The results of the experiments can be obtained by running this notebook along with the dataset "oxfordmanrealizedvolatilityindices.csv" and the "functions.py" file. 
-- The code is fully made by myself, the various algorithms that are implemented (OGD, OOGD, EG, OEG, ...) are based on the update formulas given in the paper in sections 2.3, 2.4 and 2.5. I used LLMs to debug my code. 
+- The code is fully made by myself, the various algorithms that are implemented (OGD, OOGD, EG, OEG, ...) are based on the update formulas given in my report, in sections 2.3, 2.4 and 2.5. I used LLMs to debug my code. 
 
 
 A detailed analysis and new regret bounds for our optimistic algorithms are available in the "Online Learning for portfolio selection project report.pdf" file.
