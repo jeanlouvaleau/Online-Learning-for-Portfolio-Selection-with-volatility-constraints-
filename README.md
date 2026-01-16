@@ -10,9 +10,20 @@ This repository contains the implementation and analysis of online portfolio sel
 
 The framework utilizes Optimistic Follow-The-Regularized-Leader (OFTRL) algorithms, treating financial forecasts (returns and covariance) as "hints" to guide the optimization process.
 
-## Algorithms Implemented
 
-The following strategies are implemented and compared:
+## Reproductibility and repository structure
+
+To recreate the results of the experiments: 
+- The notebook containing the code producing the results is available under the name "notebook.ipynb". The results of the experiments can be obtained by running this notebook along with the dataset "oxfordmanrealizedvolatilityindices.csv" and the "functions.py" file. 
+- The code is fully made by myself, the various algorithms that are implemented (OGD, OOGD, EG, OEG, ...) are based on the update formulas given in the paper in sections 2.3, 2.4 and 2.5. I used LLMs to debug my code. 
+
+
+A detailed analysis and new regret bounds for our optimistic algorithms are available in the "Online Learning for portfolio selection project report.pdf" file.
+
+
+## Algorithms implemented
+
+The list of algorithms that are implemented and compared is given below: 
 
 1. Benchmarks
 
@@ -48,11 +59,7 @@ Performance metrics evaluated include the Annualized Sharpe Ratio, Maximum Drawd
 1. Robustness: Optimistic strategies demonstrated superior resilience during market crashes. For example, Optimistic EG achieved a Calmar Ratio of 0.38 compared to 0.20 for the Markowitz benchmark, effectively nearly doubling the return per unit of tail risk.
 2. Efficiency: The Meta-Algorithm combining all experts achieved the highest efficiency with an Annualized Sharpe Ratio of 1.10, successfully smoothing out the volatility of individual experts.
 3. Sensitivity Analysis: The project highlights a critical trade-off in hyperparameter tuning. Optimistic strategies are highly sensitive to the learning rate. We observed that certain configurations lead to a "barcode effect" (binary switching between assets), which creates high turnover and practical implementation challenges .
-
-
-## Repository Structure
-
-The notebook producing the results is available under the name "notebook.ipynb". A detail analysis and new regret bounds for our optimistic algorithms are available in the "Online Learning for portfolio selection project report.pdf" file. 
+ 
 
 ## Requirements
 
